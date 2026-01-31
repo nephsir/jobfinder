@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobFinder - Apply in 3 Steps, Interview in Days</title>
+    
+    <!-- Materialize CSS -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation with Role Switcher -->
+    <nav class="blue darken-3">
+        <div class="nav-wrapper container nav-container">
+            <a href="#" data-target="mobile-nav" class="sidenav-trigger" aria-label="Menu"><i class="material-icons">menu</i></a>
+            
+            <div class="nav-left">
+                <a href="#" class="brand-logo">
+                    <i class="material-icons left">rocket_launch</i>JobFinder
+                </a>
+            </div>
+            
+            <ul class="role-switcher nav-center hide-on-med-and-down">
+                <li><a href="#" class="role-tab active" data-role="jobseeker"><i class="material-icons left">person_search</i>Job Seeker</a></li>
+                <li><a href="#" class="role-tab" data-role="employer"><i class="material-icons left">business_center</i>Employer</a></li>
+            </ul>
+            
+            <ul id="nav-mobile" class="nav-right hide-on-med-and-down">
+                <li class="nav-jobseeker"><a href="/jobs">Find Jobs</a></li>
+                <li id="nav-auth-guest" class="nav-jobseeker">
+                    <a href="#" class="btn waves-effect waves-light white blue-text" onclick="openAccountModal(); return false;">
+                        <i class="material-icons left">person</i>Login / Sign up
+                    </a>
+                </li>
+                <li id="nav-auth-user" class="nav-jobseeker nav-employer" style="display: none;">
+                    <a href="#" class="btn waves-effect waves-light white blue-text" onclick="openAccountModal(); return false;" title="Profile" aria-label="Profile">
+                        <i class="material-icons">account_circle</i>
+                    </a>
+                </li>
+                <li id="nav-auth-logout" class="nav-jobseeker nav-employer" style="display: none;">
+                    <a href="#" class="btn waves-effect waves-light white blue-text" onclick="logout(); return false;">
+                        <i class="material-icons left">exit_to_app</i>Log out
+                    </a>
+                </li>
+                <li class="nav-employer" style="display: none;">
+                    <a href="#employer-dashboard" class="btn waves-effect waves-light orange modal-trigger" data-target="post-job-modal">
+                        <i class="material-icons left">post_add</i>Post a Job
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <ul class="sidenav" id="mobile-nav">
+        <li><div class="user-view blue darken-3">
+            <span class="white-text name">JobFinder</span>
+            <span class="white-text email">Apply Fast. Interview Faster.</span>
+        </div></li>
+        <li class="center-align" style="padding: 10px;">
+            <div class="role-switcher-mobile">
+                <a href="#" class="btn small role-tab active" data-role="jobseeker"><i class="material-icons left">person_search</i>Job Seeker</a>
+                <a href="#" class="btn small role-tab" data-role="employer"><i class="material-icons left">business_center</i>Employer</a>
+            </div>
+        </li>
+        <li><a href="/jobs" class="sidenav-close nav-jobseeker"><i class="material-icons">work</i>Find Jobs</a></li>
+        <li><a href="#how-it-works" class="sidenav-close nav-jobseeker"><i class="material-icons">info</i>How It Works</a></li>
+        <li id="sidenav-auth-guest"><a href="#" class="sidenav-close" onclick="openAccountModal(); return false;"><i class="material-icons">person</i>Login / Sign up</a></li>
+        <li id="sidenav-auth-user" style="display: none;"><a href="#" class="sidenav-close" onclick="openAccountModal(); return false;"><i class="material-icons">person</i>Profile</a></li>
+        <li id="sidenav-auth-user-2" style="display: none;"><a href="#" class="sidenav-close" onclick="logout(); return false;"><i class="material-icons">logout</i>Logout</a></li>
+        <li><a href="#employer-dashboard" class="sidenav-close nav-employer" style="display: none;"><i class="material-icons">dashboard</i>Dashboard</a></li>
+        <li><a href="#" class="modal-trigger sidenav-close nav-employer" data-target="post-job-modal" style="display: none;"><i class="material-icons">post_add</i>Post a Job</a></li>
+    </ul>
+
+    <!-- ==================== JOB SEEKER VIEW ==================== -->
+    <div id="jobseeker-view">
+    <!-- Hero Section - Emphasizing Speed -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m8 offset-m2 center-align">
+                    <h1 class="white-text hero-title">Swipe Your Way to a Job</h1>
+                    <h2 class="white-text hero-subtitle">Swipe right to apply, left to skip – <span class="yellow-text text-accent-2">like Tinder for jobs</span></h2>
+                    
+                    <!-- 3 Steps Visual -->
+                    <div class="steps-preview">
+                        <div class="step-item">
+                            <div class="step-circle">1</div>
+                            <span>Swipe Jobs</span>
+                        </div>
+                        <div class="step-arrow"><i class="material-icons">arrow_forward</i></div>
+                        <div class="step-item">
+                            <div class="step-circle">2</div>
+                            <span>Swipe Right to Apply</span>
+                        </div>
+                        <div class="step-arrow"><i class="material-icons">arrow_forward</i></div>
+                        <div class="step-item">
+                            <div class="step-circle pulse-animation">3</div>
+                            <span>Get Interview</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Search: single job title dropdown (no "Other" field) -->
+                    <div class="quick-search-box z-depth-3">
+                        <div class="row" style="margin-bottom: 0;">
+                            <div class="input-field col s12 m8 quick-search-field">
+                                <i class="material-icons prefix">work</i>
+                                <select id="quick-search" class="quick-search-select profile-title-select" aria-label="Job title">
+                                    <option value="" disabled selected>Loading job titles...</option>
+                                </select>
+                            </div>
+                            <div class="col s12 m4">
+                                <button class="btn-large waves-effect waves-light green accent-4 full-width" onclick="goToJobs()">
+                                    <i class="material-icons left">bolt</i>Find Jobs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="white-text stats-text">
+                        <span><i class="material-icons tiny">check_circle</i> <strong id="total-jobs">0</strong> Active Jobs</span>
+                        <span><i class="material-icons tiny">schedule</i> Avg. <strong>48hrs</strong> to Interview</span>
+                        <span><i class="material-icons tiny">people</i> <strong>10K+</strong> Hired</span>
+                    </p>
+                    <p class="hero-how-it-works">
+                        <a href="#how-it-works" class="white-text underline">How it works</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="section white">
+        <div class="container">
+            <div class="row center-align">
+                <div class="col s12">
+                    <h3 class="section-title">How JobFinder Narrows the Gap</h3>
+                    <p class="grey-text">Traditional job hunting takes weeks. We make it days.</p>
+                </div>
+            </div>
+            
+            <div class="row process-flow">
+                <!-- Step 1 -->
+                <div class="col s12 m4">
+                    <div class="process-card z-depth-2">
+                        <div class="process-number blue darken-3">1</div>
+                        <div class="process-icon">
+                            <i class="material-icons large blue-text">swipe</i>
+                        </div>
+                        <h5>Swipe Through Jobs</h5>
+                        <p class="grey-text">Browse jobs one card at a time. Swipe left to skip, right to apply. See your match score on each card.</p>
+                        <div class="process-time">
+                            <i class="material-icons tiny">schedule</i> 30 seconds
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="col s12 m4">
+                    <div class="process-card z-depth-2">
+                        <div class="process-number green">2</div>
+                        <div class="process-icon">
+                            <i class="material-icons large green-text">thumb_up</i>
+                        </div>
+                        <h5>Swipe Right to Apply</h5>
+                        <p class="grey-text">Like a job? Swipe right for instant apply. Your profile auto-fills – one swipe and you're in.</p>
+                        <div class="process-time">
+                            <i class="material-icons tiny">schedule</i> 10 seconds
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="col s12 m4">
+                    <div class="process-card z-depth-2 highlight-card">
+                        <div class="process-number orange">3</div>
+                        <div class="process-icon">
+                            <i class="material-icons large orange-text">event_available</i>
+                        </div>
+                        <h5>Schedule Interview</h5>
+                        <p class="grey-text">Employers respond fast. Pick your interview slot directly in the app.</p>
+                        <div class="process-time">
+                            <i class="material-icons tiny">schedule</i> Within 48 hours
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comparison -->
+            <div class="row">
+                <div class="col s12">
+                    <div class="comparison-card z-depth-1">
+                        <div class="row" style="margin-bottom: 0;">
+                            <div class="col s6 comparison-old">
+                                <h6><i class="material-icons red-text">cancel</i> Traditional Way</h6>
+                                <p>2-4 weeks from apply to interview</p>
+                            </div>
+                            <div class="col s6 comparison-new">
+                                <h6><i class="material-icons green-text">check_circle</i> JobFinder Way</h6>
+                                <p>24-48 hours from apply to interview</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Jobs Section (any click opens job listing / swipe page) -->
+    <section id="jobs-section" class="section grey lighten-4 jobs-section-clickable" onclick="goToJobs()" role="button" tabindex="0" title="Open job listing">
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <h4 class="section-title">
+                        <i class="material-icons left">swipe</i>
+                        Jobs Ready to Swipe
+                    </h4>
+                    <p class="grey-text" style="margin-top: 8px;">Click anywhere below to open the swipe job listing</p>
+                    
+                    <!-- Filter Chips -->
+                    <div class="filter-chips">
+                        <div class="chip filter-chip active" data-filter="all">All Jobs</div>
+                        <div class="chip filter-chip" data-filter="instant">
+                            <i class="material-icons tiny">bolt</i> Instant Interview
+                        </div>
+                        <div class="chip filter-chip" data-filter="remote">
+                            <i class="material-icons tiny">home</i> Remote
+                        </div>
+                        <div class="chip filter-chip" data-filter="urgent">
+                            <i class="material-icons tiny">priority_high</i> Urgent Hiring
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" id="jobs-container">
+                <!-- Jobs loaded dynamically; any click in section opens /jobs -->
+            </div>
+        </div>
+    </section>
+    </div>
+    <!-- End Job Seeker View -->
+
+    <!-- ==================== EMPLOYER VIEW ==================== -->
+    <div id="employer-view" class="view-hidden">
+        <!-- Employer Hero -->
+        <section class="hero-section employer-hero">
+            <div class="container">
+                <div class="row">
+                    <div class="col s12 m10 offset-m1 center-align">
+                        <h1 class="white-text hero-title">Hire Fast. Fill Roles in Days.</h1>
+                        <h2 class="white-text hero-subtitle">Post jobs, review applicants, schedule interviews – all in one place</h2>
+                        
+                        <div class="employer-stats">
+                            <div class="employer-stat">
+                                <span class="stat-num" id="employer-jobs-count">0</span>
+                                <span class="stat-label">Your Active Jobs</span>
+                            </div>
+                            <div class="employer-stat">
+                                <span class="stat-num" id="employer-apps-count">0</span>
+                                <span class="stat-label">Applications Received</span>
+                            </div>
+                            <div class="employer-stat">
+                                <span class="stat-num">48hrs</span>
+                                <span class="stat-label">Avg. Time to Hire</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-large waves-effect waves-light orange modal-trigger" data-target="post-job-modal">
+                            <i class="material-icons left">post_add</i>Post a New Job
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Employer Dashboard -->
+        <section id="employer-dashboard" class="section grey lighten-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col s12">
+                        <h4 class="section-title">
+                            <i class="material-icons left">work</i>
+                            Your Job Listings
+                        </h4>
+                        <p class="grey-text">Manage your jobs and review applications. Respond quickly to narrow the gap to interview.</p>
+                    </div>
+                </div>
+                
+                <div class="row" id="employer-jobs-container">
+                    <!-- Employer jobs loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Employer How It Works -->
+        <section class="section white">
+            <div class="container">
+                <div class="row center-align">
+                    <div class="col s12">
+                        <h4 class="section-title">For Employers: 3 Quick Steps</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col s12 m4">
+                        <div class="process-card z-depth-1">
+                            <div class="process-icon"><i class="material-icons large blue-text">post_add</i></div>
+                            <h5>1. Post Your Job</h5>
+                            <p class="grey-text">Fill a simple form. Job goes live instantly to thousands of job seekers.</p>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="process-card z-depth-1">
+                            <div class="process-icon"><i class="material-icons large green-text">assignment</i></div>
+                            <h5>2. Review Applications</h5>
+                            <p class="grey-text">See applicants in one place. Quick Apply means quality candidates, fast.</p>
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="process-card z-depth-1">
+                            <div class="process-icon"><i class="material-icons large orange-text">event</i></div>
+                            <h5>3. Schedule Interview</h5>
+                            <p class="grey-text">Update status, send a message, or schedule an interview slot – all in-app.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <!-- End Employer View -->
+
+    <!-- Account / Profile Modal (Login, Sign up, and Profile in one) -->
+    <div id="account-modal" class="modal modal-fixed-footer">
+        <div class="modal-content">
+            <!-- Guest: Login panel -->
+            <div id="account-login-panel">
+                <h4 class="center-align"><i class="material-icons blue-text">login</i> Log in</h4>
+                <p class="center-align grey-text">Choose your account type</p>
+                
+                <!-- Login Type Tabs -->
+                <div class="row" style="margin-bottom: 0;">
+                    <div class="col s12">
+                        <ul class="tabs login-type-tabs">
+                            <li class="tab col s6"><a href="#login-jobseeker-tab" class="active" onclick="switchLoginTab('jobseeker')"><i class="material-icons left">work</i>Job Seeker</a></li>
+                            <li class="tab col s6"><a href="#login-employer-tab" onclick="switchLoginTab('employer')"><i class="material-icons left">business</i>Employer</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Job Seeker Login -->
+                <div id="login-jobseeker-tab" class="login-tab-content">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Sign in to find and apply for jobs</p>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="account-login-email" required>
+                        <label for="account-login-email">Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="account-login-password" required>
+                        <label for="account-login-password">Password</label>
+                    </div>
+                    <p id="account-login-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <!-- Employer Login -->
+                <div id="login-employer-tab" class="login-tab-content" style="display: none;">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Sign in to manage jobs and applicants</p>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="employer-login-email" required>
+                        <label for="employer-login-email">Work Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="employer-login-password" required>
+                        <label for="employer-login-password">Password</label>
+                    </div>
+                    <p id="employer-login-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <p class="center-align" style="margin-top: 16px;">
+                    <a href="#" onclick="showAccountPanel('create'); return false;" class="blue-text">Don't have an account? Create one</a>
+                </p>
+            </div>
+
+            <!-- Guest: Create profile (sign up with email, password + full profile) -->
+            <div id="account-create-panel" style="display: none;">
+                <h4 class="center-align"><i class="material-icons green-text">person_add</i> Create your account</h4>
+                <p class="center-align grey-text">Choose your account type</p>
+                
+                <!-- Signup Type Tabs -->
+                <div class="row" style="margin-bottom: 0;">
+                    <div class="col s12">
+                        <ul class="tabs signup-type-tabs">
+                            <li class="tab col s6"><a href="#signup-jobseeker-tab" class="active" onclick="switchSignupTab('jobseeker')"><i class="material-icons left">work</i>Job Seeker</a></li>
+                            <li class="tab col s6"><a href="#signup-employer-tab" onclick="switchSignupTab('employer')"><i class="material-icons left">business</i>Employer</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Job Seeker Signup Form -->
+                <div id="signup-jobseeker-tab" class="signup-tab-content">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Fill once, apply everywhere</p>
+                    <div class="row">
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="account-create-firstName" required>
+                            <label for="account-create-firstName">First Name</label>
+                        </div>
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="account-create-lastName" required>
+                            <label for="account-create-lastName">Last Name</label>
+                        </div>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="account-create-email" required>
+                        <label for="account-create-email">Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="account-create-password" required minlength="6">
+                        <label for="account-create-password">Password (min 6 characters)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">phone</i>
+                        <input type="tel" id="account-create-phone">
+                        <label for="account-create-phone">Phone</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">location_on</i>
+                        <select id="account-create-location" class="profile-location-select">
+                            <option value="" disabled selected>Choose your location</option>
+                            <optgroup label="Major cities">
+                                <option value="Sydney, NSW">Sydney, NSW</option>
+                                <option value="Melbourne, VIC">Melbourne, VIC</option>
+                                <option value="Brisbane, QLD">Brisbane, QLD</option>
+                                <option value="Perth, WA">Perth, WA</option>
+                                <option value="Adelaide, SA">Adelaide, SA</option>
+                                <option value="Canberra, ACT">Canberra, ACT</option>
+                                <option value="Hobart, TAS">Hobart, TAS</option>
+                                <option value="Darwin, NT">Darwin, NT</option>
+                            </optgroup>
+                            <optgroup label="NSW">
+                                <option value="Newcastle, NSW">Newcastle, NSW</option>
+                                <option value="Wollongong, NSW">Wollongong, NSW</option>
+                                <option value="Central Coast, NSW">Central Coast, NSW</option>
+                            </optgroup>
+                            <optgroup label="VIC">
+                                <option value="Geelong, VIC">Geelong, VIC</option>
+                                <option value="Ballarat, VIC">Ballarat, VIC</option>
+                            </optgroup>
+                            <optgroup label="QLD">
+                                <option value="Gold Coast, QLD">Gold Coast, QLD</option>
+                                <option value="Sunshine Coast, QLD">Sunshine Coast, QLD</option>
+                                <option value="Townsville, QLD">Townsville, QLD</option>
+                            </optgroup>
+                            <option value="__other__">Other (type below)</option>
+                        </select>
+                        <label for="account-create-location">Location</label>
+                        <input type="text" id="account-create-location-other" class="profile-location-other" placeholder="Enter location" style="display: none; margin-top: 10px;">
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">work</i>
+                        <select id="account-create-title" class="profile-title-select">
+                            <option value="" disabled selected>Loading job titles...</option>
+                        </select>
+                        <label for="account-create-title">Current/Desired Job Title</label>
+                        <input type="text" id="account-create-title-other" class="profile-title-other" placeholder="Or type your own job title" style="display: none; margin-top: 10px;">
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">psychology</i>
+                        <input type="text" id="account-create-skills" placeholder="e.g. JavaScript, React, Node.js">
+                        <label for="account-create-skills">Key Skills (comma separated)</label>
+                    </div>
+                    <p id="account-create-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <!-- Employer Signup Form -->
+                <div id="signup-employer-tab" class="signup-tab-content" style="display: none;">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Post jobs and find top talent</p>
+                    <div class="row">
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="employer-create-firstName" required>
+                            <label for="employer-create-firstName">First Name</label>
+                        </div>
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="employer-create-lastName" required>
+                            <label for="employer-create-lastName">Last Name</label>
+                        </div>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">business</i>
+                        <input type="text" id="employer-create-companyName" required>
+                        <label for="employer-create-companyName">Company Name</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="employer-create-email" required>
+                        <label for="employer-create-email">Work Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="employer-create-password" required minlength="6">
+                        <label for="employer-create-password">Password (min 6 characters)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">phone</i>
+                        <input type="tel" id="employer-create-phone">
+                        <label for="employer-create-phone">Phone</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">location_on</i>
+                        <select id="employer-create-location" class="profile-location-select">
+                            <option value="" disabled selected>Company Location</option>
+                            <optgroup label="Major cities">
+                                <option value="Sydney, NSW">Sydney, NSW</option>
+                                <option value="Melbourne, VIC">Melbourne, VIC</option>
+                                <option value="Brisbane, QLD">Brisbane, QLD</option>
+                                <option value="Perth, WA">Perth, WA</option>
+                                <option value="Adelaide, SA">Adelaide, SA</option>
+                                <option value="Canberra, ACT">Canberra, ACT</option>
+                                <option value="Hobart, TAS">Hobart, TAS</option>
+                                <option value="Darwin, NT">Darwin, NT</option>
+                            </optgroup>
+                            <optgroup label="NSW">
+                                <option value="Newcastle, NSW">Newcastle, NSW</option>
+                                <option value="Wollongong, NSW">Wollongong, NSW</option>
+                                <option value="Central Coast, NSW">Central Coast, NSW</option>
+                            </optgroup>
+                            <optgroup label="VIC">
+                                <option value="Geelong, VIC">Geelong, VIC</option>
+                                <option value="Ballarat, VIC">Ballarat, VIC</option>
+                            </optgroup>
+                            <optgroup label="QLD">
+                                <option value="Gold Coast, QLD">Gold Coast, QLD</option>
+                                <option value="Sunshine Coast, QLD">Sunshine Coast, QLD</option>
+                                <option value="Townsville, QLD">Townsville, QLD</option>
+                            </optgroup>
+                            <option value="__other__">Other (type below)</option>
+                        </select>
+                        <label for="employer-create-location">Company Location</label>
+                        <input type="text" id="employer-create-location-other" class="profile-location-other" placeholder="Enter location" style="display: none; margin-top: 10px;">
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">category</i>
+                        <select id="employer-create-industry">
+                            <option value="" disabled selected>Select Industry</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Finance">Finance & Banking</option>
+                            <option value="Education">Education</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Construction">Construction</option>
+                            <option value="Hospitality">Hospitality & Tourism</option>
+                            <option value="Media">Media & Entertainment</option>
+                            <option value="Legal">Legal</option>
+                            <option value="Real Estate">Real Estate</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <label for="employer-create-industry">Industry</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">description</i>
+                        <textarea id="employer-create-description" class="materialize-textarea" placeholder="Brief description of your company..."></textarea>
+                        <label for="employer-create-description">Company Description (optional)</label>
+                    </div>
+                    <p id="employer-create-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <p class="center-align" style="margin-top: 16px;">
+                    <a href="#" onclick="showAccountPanel('login'); return false;" class="blue-text">Already have an account? Log in</a>
+                </p>
+            </div>
+
+            <!-- Logged in: Profile view -->
+            <div id="account-profile-panel" style="display: none;">
+                <h4 class="center-align"><i class="material-icons blue-text">person</i> My Profile</h4>
+                <div class="divider"></div>
+                <div id="profile-view-mode">
+                    <div class="row">
+                        <div class="col s12 center-align" style="margin-bottom: 20px;">
+                            <img id="profile-view-avatar" src="" alt="Avatar" class="circle" style="width: 80px; height: 80px; object-fit: cover;">
+                        </div>
+                        <div class="col s12 m6">
+                            <p><strong>Name</strong></p>
+                            <p id="profile-view-name" class="grey-text text-darken-2"></p>
+                        </div>
+                        <div class="col s12 m6">
+                            <p><strong>Email</strong></p>
+                            <p id="profile-view-email" class="grey-text text-darken-2"></p>
+                        </div>
+                        <div class="col s12 m6">
+                            <p><strong>Phone</strong></p>
+                            <p id="profile-view-phone" class="grey-text text-darken-2"></p>
+                        </div>
+                        <div class="col s12 m6">
+                            <p><strong>Location</strong></p>
+                            <p id="profile-view-location" class="grey-text text-darken-2"></p>
+                        </div>
+                        <div class="col s12 m6">
+                            <p><strong>Title</strong></p>
+                            <p id="profile-view-title" class="grey-text text-darken-2"></p>
+                        </div>
+                        <div class="col s12 m6">
+                            <p><strong>Skills</strong></p>
+                            <p id="profile-view-skills" class="grey-text text-darken-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="profile-edit-mode" style="display: none;">
+                    <form id="profile-edit-form">
+                        <div class="row">
+                            <div class="input-field col s12 m6">
+                                <i class="material-icons prefix">person</i>
+                                <input type="text" id="profile-edit-firstName" required>
+                                <label for="profile-edit-firstName">First Name</label>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <i class="material-icons prefix">person</i>
+                                <input type="text" id="profile-edit-lastName" required>
+                                <label for="profile-edit-lastName">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">email</i>
+                            <input type="email" id="profile-edit-email" readonly class="grey-text">
+                            <label for="profile-edit-email">Email (cannot change)</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">phone</i>
+                            <input type="tel" id="profile-edit-phone">
+                            <label for="profile-edit-phone">Phone</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">location_on</i>
+                            <select id="profile-edit-location" class="profile-location-select">
+                                <option value="" disabled selected>Choose location</option>
+                                <optgroup label="Major cities">
+                                    <option value="Sydney, NSW">Sydney, NSW</option>
+                                    <option value="Melbourne, VIC">Melbourne, VIC</option>
+                                    <option value="Brisbane, QLD">Brisbane, QLD</option>
+                                    <option value="Perth, WA">Perth, WA</option>
+                                    <option value="Adelaide, SA">Adelaide, SA</option>
+                                    <option value="Canberra, ACT">Canberra, ACT</option>
+                                    <option value="Hobart, TAS">Hobart, TAS</option>
+                                    <option value="Darwin, NT">Darwin, NT</option>
+                                </optgroup>
+                                <optgroup label="NSW">
+                                    <option value="Newcastle, NSW">Newcastle, NSW</option>
+                                    <option value="Wollongong, NSW">Wollongong, NSW</option>
+                                    <option value="Central Coast, NSW">Central Coast, NSW</option>
+                                </optgroup>
+                                <optgroup label="VIC">
+                                    <option value="Geelong, VIC">Geelong, VIC</option>
+                                    <option value="Ballarat, VIC">Ballarat, VIC</option>
+                                </optgroup>
+                                <optgroup label="QLD">
+                                    <option value="Gold Coast, QLD">Gold Coast, QLD</option>
+                                    <option value="Sunshine Coast, QLD">Sunshine Coast, QLD</option>
+                                    <option value="Townsville, QLD">Townsville, QLD</option>
+                                </optgroup>
+                                <option value="__other__">Other (type below)</option>
+                            </select>
+                            <label for="profile-edit-location">Location</label>
+                            <input type="text" id="profile-edit-location-other" class="profile-location-other" placeholder="Enter location" style="display: none; margin-top: 10px;">
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">work</i>
+                            <select id="profile-edit-title" class="profile-title-select">
+                                <option value="" disabled selected>Loading job titles...</option>
+                            </select>
+                            <label for="profile-edit-title">Current/Desired Job Title</label>
+                            <input type="text" id="profile-edit-title-other" class="profile-title-other" placeholder="Or type your own job title" style="display: none; margin-top: 10px;">
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">psychology</i>
+                            <input type="text" id="profile-edit-skills" placeholder="e.g. JavaScript, React, Node.js">
+                            <label for="profile-edit-skills">Skills (comma separated)</label>
+                        </div>
+                        <p id="profile-edit-error" class="red-text center-align" style="display: none;"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" id="account-modal-footer">
+            <!-- Guest login footer -->
+            <span id="account-footer-login">
+                <a href="#" class="modal-close btn-flat">Cancel</a>
+                <button type="button" id="login-submit-btn" class="btn waves-effect waves-light blue" onclick="submitLogin()"><i class="material-icons left">login</i>Log in</button>
+            </span>
+            <!-- Guest create footer -->
+            <span id="account-footer-create" style="display: none;">
+                <a href="#" class="modal-close btn-flat">Cancel</a>
+                <button type="button" id="signup-submit-btn" class="btn waves-effect waves-light green" onclick="submitSignup()"><i class="material-icons left">person_add</i>Create Account</button>
+            </span>
+            <!-- Logged-in profile footer -->
+            <span id="account-footer-profile" style="display: none;">
+                <span id="profile-footer-view">
+                    <a href="#" class="modal-close btn-flat">Close</a>
+                    <button type="button" class="btn waves-effect waves-light blue" onclick="profileSwitchToEdit()"><i class="material-icons left">edit</i>Edit Profile</button>
+                </span>
+                <span id="profile-footer-edit" style="display: none;">
+                    <a href="#" class="btn-flat" onclick="profileSwitchToView()">Cancel</a>
+                    <button type="button" class="btn waves-effect waves-light green" onclick="submitProfileEdit()"><i class="material-icons left">save</i>Save</button>
+                </span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Quick Apply Modal - Simplified -->
+    <div id="quick-apply-modal" class="modal">
+        <div class="modal-content">
+            <div class="center-align">
+                <i class="material-icons large green-text">bolt</i>
+                <h4>Quick Apply</h4>
+                <div id="apply-job-info"></div>
+            </div>
+            <div class="divider"></div>
+            
+            <div class="quick-apply-profile" id="apply-profile-preview">
+                <!-- Profile preview loaded here -->
+            </div>
+            
+            <div class="row">
+                <div class="input-field col s12">
+                    <textarea id="quick-message" class="materialize-textarea" placeholder="Optional: Add a quick note to the employer"></textarea>
+                    <label for="quick-message">Quick Message (Optional)</label>
+                </div>
+            </div>
+            
+            <div class="availability-section">
+                <h6><i class="material-icons left">event</i>Interview Availability</h6>
+                <p class="grey-text">Select your available times (increases response rate by 3x)</p>
+                <div class="availability-slots">
+                    <label>
+                        <input type="checkbox" class="filled-in" checked />
+                        <span>Mon-Fri Mornings (9AM-12PM)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="filled-in" checked />
+                        <span>Mon-Fri Afternoons (2PM-5PM)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="filled-in" />
+                        <span>Weekends</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Cancel</a>
+            <button class="btn-large waves-effect waves-light green pulse" onclick="submitQuickApply()">
+                <i class="material-icons left">send</i>Apply Now
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Success Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content center-align">
+            <div class="success-animation">
+                <i class="material-icons large green-text">check_circle</i>
+            </div>
+            <h4>Application Sent!</h4>
+            <p class="grey-text">Your application has been submitted successfully</p>
+            
+            <div class="success-info card-panel green lighten-5">
+                <h5 class="green-text">What Happens Next?</h5>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <i class="material-icons green-text">schedule</i>
+                        <span>Employer reviews your application (usually within 24 hours)</span>
+                    </div>
+                    <div class="timeline-item">
+                        <i class="material-icons blue-text">notifications</i>
+                        <span>You'll receive a notification when they respond</span>
+                    </div>
+                    <div class="timeline-item">
+                        <i class="material-icons orange-text">event</i>
+                        <span>If selected, pick your interview time directly here</span>
+                    </div>
+                </div>
+            </div>
+            
+            <p><strong>Expected Response:</strong> <span class="green-text">Within 48 hours</span></p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn waves-effect waves-light blue">
+                <i class="material-icons left">work</i>Browse More Jobs
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== EMPLOYER MODALS ===== -->
+    <!-- Post Job Modal -->
+    <div id="post-job-modal" class="modal modal-fixed-footer">
+        <div class="modal-content">
+            <h4 class="center-align">
+                <i class="material-icons blue-text">post_add</i>
+                Post a New Job
+            </h4>
+            <p class="center-align grey-text">Fill in the details. Job goes live instantly.</p>
+            <div class="divider"></div>
+            
+            <form id="post-job-form">
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">work</i>
+                        <input type="text" id="job-title" required>
+                        <label for="job-title">Job Title</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">business</i>
+                        <input type="text" id="job-company" required>
+                        <label for="job-company">Company Name</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">location_on</i>
+                        <input type="text" id="job-location" required>
+                        <label for="job-location">Location</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <select id="job-type" required>
+                            <option value="">Select type</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Remote">Remote</option>
+                        </select>
+                        <label>Job Type</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">category</i>
+                        <input type="text" id="job-category" value="Technology">
+                        <label for="job-category">Category</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">payments</i>
+                        <input type="text" id="job-salary" placeholder="e.g. $80,000 - $100,000">
+                        <label for="job-salary">Salary Range</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">description</i>
+                        <textarea id="job-description" class="materialize-textarea" required></textarea>
+                        <label for="job-description">Job Description</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">checklist</i>
+                        <input type="text" id="job-requirements" placeholder="e.g. 3+ years experience, Node.js, React">
+                        <label for="job-requirements">Requirements (comma separated)</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">card_giftcard</i>
+                        <input type="text" id="job-benefits" placeholder="e.g. Health insurance, Remote work">
+                        <label for="job-benefits">Benefits (comma separated)</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Cancel</a>
+            <button class="btn waves-effect waves-light blue" onclick="submitPostJob()">
+                <i class="material-icons left">publish</i>Publish Job
+            </button>
+        </div>
+    </div>
+
+    <!-- View Applications Modal -->
+    <div id="applications-modal" class="modal modal-fixed-footer bottom-sheet">
+        <div class="modal-content">
+            <h4 class="center-align">
+                <i class="material-icons blue-text">assignment</i>
+                Applications
+            </h4>
+            <div id="applications-job-title" class="center-align grey-text"></div>
+            <div class="divider"></div>
+            
+            <div id="applications-list">
+                <!-- Applications loaded dynamically -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Close</a>
+        </div>
+    </div>
+
+    <!-- Applicant Detail / Update Status Modal -->
+    <div id="applicant-detail-modal" class="modal">
+        <div class="modal-content">
+            <h4><i class="material-icons left blue-text">person</i>Applicant Details</h4>
+            <div class="divider"></div>
+            <div id="applicant-detail-content">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="row mt-20">
+                <h6><i class="material-icons left">swap_horiz</i>Update Status</h6>
+                <div class="col s12">
+                    <button class="btn waves-effect waves-light blue" onclick="updateAppStatus('under_review')">Under Review</button>
+                    <button class="btn waves-effect waves-light purple" onclick="updateAppStatus('interview_scheduled')">Schedule Interview</button>
+                    <button class="btn waves-effect waves-light green" onclick="updateAppStatus('offered')">Offer</button>
+                    <button class="btn waves-effect waves-light red" onclick="updateAppStatus('rejected')">Not Selected</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Close</a>
+        </div>
+    </div>
+
+    <!-- Job Detail Modal - Streamlined -->
+    <div id="job-detail-modal" class="modal modal-fixed-footer">
+        <div class="modal-content" id="job-detail-content">
+            <!-- Content loaded dynamically -->
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Close</a>
+            <button class="btn-large waves-effect waves-light green" id="apply-btn" onclick="openQuickApply()">
+                <i class="material-icons left">bolt</i>Quick Apply
+            </button>
+        </div>
+    </div>
+
+    <!-- Interview Scheduler Modal -->
+    <div id="interview-modal" class="modal">
+        <div class="modal-content">
+            <h4 class="center-align">
+                <i class="material-icons orange-text">event_available</i>
+                Schedule Your Interview
+            </h4>
+            <p class="center-align grey-text">Pick a time that works for you</p>
+            <div class="divider"></div>
+            
+            <div id="interview-job-info"></div>
+            
+            <h6><i class="material-icons left">calendar_today</i>Available Slots</h6>
+            <div class="interview-slots" id="interview-slots">
+                <!-- Slots loaded dynamically -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Cancel</a>
+            <button class="btn waves-effect waves-light orange" onclick="confirmInterview()">
+                <i class="material-icons left">check</i>Confirm Interview
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer - Simplified -->
+    <footer class="page-footer blue darken-4">
+        <div class="container">
+            <div class="row">
+                <div class="col s12 m6">
+                    <h5 class="white-text"><i class="material-icons left">rocket_launch</i>JobFinder</h5>
+                    <p class="grey-text text-lighten-4">Bridging the gap between application and interview. Apply fast, get hired faster.</p>
+                </div>
+                <div class="col s12 m6 right-align">
+                    <h6 class="white-text">Our Promise</h6>
+                    <p class="grey-text text-lighten-4">
+                        <i class="material-icons tiny">bolt</i> 3-Step Application<br>
+                        <i class="material-icons tiny">schedule</i> 48-Hour Response<br>
+                        <i class="material-icons tiny">event</i> Direct Interview Scheduling
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                <span>© 2026 JobFinder Platform - SIT725 Group Project</span>
+                <span class="right" id="connection-status">
+                    <i class="material-icons tiny green-text">fiber_manual_record</i> Connected
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

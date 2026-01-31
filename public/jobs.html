@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Jobs - JobFinder</title>
+    
+    <!-- Materialize CSS -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Match landing page theme: blue primary, same gradients */
+        body {
+            background: #f5f5f5;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Single viewport: no page scroll */
+        .jobs-page-main {
+            display: flex;
+            height: calc(100vh - 64px);
+            overflow: hidden;
+        }
+        
+        /* Left: swipe area */
+        .swipe-column {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1565c0 0%, #0d47a1 50%, #1a237e 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 16px;
+        }
+        
+        .swipe-column::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.03);
+            transform: rotate(15deg);
+            pointer-events: none;
+        }
+        
+        .swipe-header {
+            text-align: center;
+            margin-bottom: 8px;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .swipe-header h4 {
+            margin: 0 0 2px 0;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .swipe-header p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.85rem;
+        }
+        
+        .cards-stack {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            height: 380px;
+            margin: 0 auto;
+            z-index: 1;
+        }
+        
+        .swipe-card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            cursor: grab;
+            transition: transform 0.1s ease-out;
+            user-select: none;
+        }
+        
+        .swipe-card:active { cursor: grabbing; }
+        .swipe-card.behind { transform: scale(0.95) translateY(20px); opacity: 0.7; pointer-events: none; }
+        .swipe-card.behind-2 { transform: scale(0.9) translateY(40px); opacity: 0.5; pointer-events: none; }
+        .swipe-card.swiping-left { transform: translateX(-150%) rotate(-30deg); transition: transform 0.4s ease-out; }
+        .swipe-card.swiping-right { transform: translateX(150%) rotate(30deg); transition: transform 0.4s ease-out; }
+        
+        .card-header {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+            padding: 14px 16px;
+            color: white;
+            position: relative;
+        }
+        
+        .card-header .match-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .card-header .match-badge.high { background: #4caf50; }
+        .card-header .match-badge.medium { background: #ff9800; }
+        
+        .card-company-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 8px;
+            object-fit: cover;
+        }
+        
+        .card-header h5 { margin: 0 0 2px 0; font-weight: 600; font-size: 1.1rem; }
+        .card-header .company-name { margin: 0; opacity: 0.9; font-size: 0.85rem; }
+        
+        .card-body { padding: 12px 16px; }
+        
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .card-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f5f5f5;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #555;
+        }
+        
+        .card-meta-item i { font-size: 0.85rem; color: #1565c0; }
+        
+        .card-salary { font-size: 1rem; font-weight: 600; color: #2e7d32; margin-bottom: 8px; }
+        
+        .card-requirements { margin-bottom: 8px; }
+        .card-requirements h6 { margin: 0 0 4px 0; font-size: 0.8rem; color: #666; font-weight: 600; }
+        .card-requirements .chip { margin: 1px; background: #e3f2fd; color: #1565c0; font-size: 0.7rem; }
+        
+        .card-description { font-size: 0.8rem; color: #666; line-height: 1.4; max-height: 40px; overflow: hidden; }
+        
+        /* Swipe indicators */
+        .swipe-indicator {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        
+        .swipe-indicator.skip { left: 20px; background: #f44336; color: white; border: 3px solid #d32f2f; }
+        .swipe-indicator.apply { right: 20px; background: #4caf50; color: white; border: 3px solid #388e3c; }
+        
+        .swipe-card.dragging-left .swipe-indicator.skip,
+        .swipe-card.dragging-right .swipe-indicator.apply { opacity: 1; }
+        
+        /* Action buttons */
+        .swipe-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 12px;
+        }
+        
+        .swipe-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .swipe-btn:hover { transform: scale(1.1); }
+        .swipe-btn.skip-btn { background: white; color: #f44336; }
+        .swipe-btn.skip-btn:hover { background: #ffebee; }
+        .swipe-btn.info-btn { background: white; color: #2196f3; width: 44px; height: 44px; }
+        .swipe-btn.apply-btn { background: #4caf50; color: white; }
+        .swipe-btn.apply-btn:hover { background: #43a047; }
+        .swipe-btn i { font-size: 1.5rem; }
+        .swipe-btn.info-btn i { font-size: 1.2rem; }
+        
+        .swipe-actions { position: relative; z-index: 1; }
+        .swipe-progress { text-align: center; margin-top: 8px; color: white; opacity: 0.9; font-size: 0.85rem; position: relative; z-index: 1; }
+        
+        .no-more-jobs { text-align: center; color: white; padding: 20px 16px; position: relative; z-index: 1; }
+        .no-more-jobs i { font-size: 3rem; opacity: 0.8; margin-bottom: 8px; }
+        .no-more-jobs h4 { margin: 0 0 6px 0; font-size: 1.1rem; }
+        .no-more-jobs p { opacity: 0.9; margin-bottom: 12px; font-size: 0.9rem; }
+        
+        /* Navigation: match landing page nav (blue darken-3) */
+        .jobs-page-nav .brand-logo { font-weight: 700; }
+        
+        /* Far left: Skipped column */
+        .skipped-column {
+            width: 320px;
+            min-width: 280px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+        
+        /* Far right: Applied column */
+        .applied-column {
+            width: 320px;
+            min-width: 280px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-left: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+        
+        .list-panel {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .list-panel-header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #fafafa;
+            border-bottom: 1px solid #eee;
+            gap: 8px;
+        }
+        
+        .list-panel-header .section-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1565c0;
+        }
+        
+        .list-panel-header .section-title .badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .list-panel-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        
+        /* Page sections (compact in right column) */
+        .jobs-page-section .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1565c0;
+        }
+        
+        .jobs-page-section .section-title .badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .list-header h5 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Job List Item (compact) */
+        .job-list-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .job-list-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .job-list-item.dragging {
+            opacity: 0.6;
+            cursor: grabbing;
+        }
+        
+        .job-list-item[draggable="true"] {
+            cursor: grab;
+        }
+        
+        .swipe-column.drag-over-deck {
+            outline: 3px dashed rgba(255,255,255,0.6);
+            outline-offset: -4px;
+        }
+        
+        .job-list-item .job-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .job-list-item .job-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .job-list-item .job-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0 0 2px 0;
+            color: #333;
+        }
+        
+        .job-list-item .job-company {
+            color: #666;
+            margin: 0 0 4px 0;
+            font-size: 0.8rem;
+        }
+        
+        .job-list-item .job-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+        
+        .job-list-item .job-meta span {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .job-list-item .job-meta i {
+            font-size: 0.85rem;
+        }
+        
+        .job-list-item .job-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.submitted { background: #fff3e0; color: #e65100; }
+        .status-badge.under_review { background: #e3f2fd; color: #1565c0; }
+        .status-badge.interview_scheduled { background: #e8f5e9; color: #2e7d32; }
+        .status-badge.interviewed { background: #e0f7fa; color: #00695c; }
+        .status-badge.offered { background: #e8f5e9; color: #1b5e20; }
+        .status-badge.accepted { background: #e8f5e9; color: #1b5e20; }
+        .status-badge.rejected { background: #ffebee; color: #c62828; }
+        .status-badge.withdrawn { background: #fafafa; color: #616161; }
+        .status-badge.skipped { background: #f5f5f5; color: #757575; }
+        
+        .job-list-item .status-badge { padding: 3px 8px; font-size: 0.7rem; }
+        .job-list-item .btn-small { padding: 4px 8px; min-height: 28px; line-height: 1.2; }
+        
+        /* Empty state (compact) */
+        .empty-list {
+            text-align: center;
+            padding: 24px 12px;
+            color: #999;
+            font-size: 0.85rem;
+        }
+        
+        .empty-list i {
+            font-size: 2.5rem;
+            color: #ddd;
+            margin-bottom: 8px;
+        }
+        
+        .empty-list h5 { font-size: 1rem; margin: 0 0 6px 0; }
+        
+        /* Responsive: stack on small screens, allow scroll */
+        @media (max-width: 900px) {
+            .jobs-page-main { flex-direction: column; height: auto; min-height: calc(100vh - 64px); overflow-y: auto; }
+            body { overflow: auto; height: auto; }
+            .swipe-column { min-height: 420px; }
+            .lists-column { width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; }
+            .list-panel { min-height: 280px; flex: 1 1 280px; }
+        }
+        
+        @media (max-width: 600px) {
+            .cards-stack { max-width: 280px; height: 340px; }
+            .job-list-item { flex-direction: column; }
+            .job-list-item .job-actions { flex-direction: row; width: 100%; margin-top: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation: same as landing page (blue darken-3) -->
+    <nav class="blue darken-3 jobs-page-nav">
+        <div class="nav-wrapper container nav-container">
+            <a href="#" data-target="mobile-nav" class="sidenav-trigger" aria-label="Menu"><i class="material-icons">menu</i></a>
+            <div class="nav-left">
+                <a href="/" class="brand-logo">
+                    <i class="material-icons left">rocket_launch</i>JobFinder
+                </a>
+            </div>
+            <ul id="nav-mobile" class="nav-right hide-on-med-and-down">
+                <li><a href="/"><i class="material-icons left">home</i>Home</a></li>
+                <!-- Guest: show login -->
+                <li id="nav-auth-guest">
+                    <a href="/" class="btn waves-effect waves-light white blue-text">
+                        <i class="material-icons left">person</i>Login / Sign up
+                    </a>
+                </li>
+                <!-- Logged in: Profile (icon only) and Logout separate -->
+                <li id="nav-auth-user" style="display:none;">
+                    <a href="#" class="btn waves-effect waves-light white blue-text" title="Profile" aria-label="Profile" onclick="openAccountModal(); return false;">
+                        <i class="material-icons">account_circle</i>
+                    </a>
+                </li>
+                <li id="nav-auth-logout" style="display:none;">
+                    <a href="#" class="btn waves-effect waves-light white blue-text" onclick="logout(); return false;">
+                        <i class="material-icons left">exit_to_app</i>Log out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <ul class="sidenav" id="mobile-nav">
+        <li><div class="user-view blue darken-3">
+            <span class="white-text name">JobFinder</span>
+            <span class="white-text email" id="sidenav-user-email">Find Jobs</span>
+        </div></li>
+        <li><a href="/" class="sidenav-close"><i class="material-icons">home</i>Home</a></li>
+        <!-- Guest -->
+        <li id="sidenav-auth-guest"><a href="/" class="sidenav-close"><i class="material-icons">person</i>Login / Sign up</a></li>
+        <!-- Logged in -->
+        <li id="sidenav-auth-user" style="display:none;"><a href="#" class="sidenav-close" onclick="openAccountModal(); return false;"><i class="material-icons">account_circle</i>My Profile</a></li>
+        <li id="sidenav-auth-user-2" style="display:none;"><a href="#" class="sidenav-close" onclick="logout(); return false;"><i class="material-icons">exit_to_app</i>Logout</a></li>
+    </ul>
+
+    <!-- Single viewport: three columns - Skipped (left) | Swipe (center) | Applied (right) -->
+    <main class="jobs-page-main">
+        <!-- Far left: Skipped -->
+        <aside class="skipped-column">
+            <div id="skipped-section" class="list-panel">
+                <div class="list-panel-header">
+                    <h5 class="section-title">
+                        <i class="material-icons grey-text">remove_circle</i>
+                        Skipped
+                        <span class="badge" id="skipped-count">0</span>
+                    </h5>
+                    <button class="btn-small grey" onclick="clearAllSkipped()" id="clear-skipped-btn" style="display: none;">
+                        <i class="material-icons" style="font-size: 1rem;">delete</i>
+                    </button>
+                </div>
+                <div class="list-panel-body" id="skipped-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center: Find Your Match (swipe) -->
+        <section id="find-jobs-section" class="swipe-column">
+            <div class="swipe-header">
+                <h4><i class="material-icons">local_fire_department</i> Find Your Match</h4>
+                <p>Swipe right to apply, left to skip</p>
+            </div>
+            
+            <div class="cards-stack" id="cards-stack">
+                <div class="no-more-jobs" id="loading-state">
+                    <div class="preloader-wrapper active">
+                        <div class="spinner-layer spinner-white-only">
+                            <div class="circle-clipper left"><div class="circle"></div></div>
+                            <div class="gap-patch"><div class="circle"></div></div>
+                            <div class="circle-clipper right"><div class="circle"></div></div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 12px;">Loading jobs...</p>
+                </div>
+            </div>
+            
+            <div class="swipe-actions" id="swipe-actions" style="display: none;">
+                <button class="swipe-btn skip-btn" onclick="swipeCard('left')" title="Skip">
+                    <i class="material-icons">close</i>
+                </button>
+                <button class="swipe-btn info-btn" onclick="showJobDetails()" title="More Info">
+                    <i class="material-icons">info</i>
+                </button>
+                <button class="swipe-btn apply-btn" onclick="swipeCard('right')" title="Quick Apply">
+                    <i class="material-icons">favorite</i>
+                </button>
+            </div>
+            
+            <div class="swipe-progress" id="swipe-progress"></div>
+        </section>
+
+        <!-- Far right: Applied -->
+        <aside class="applied-column">
+            <div id="applied-section" class="list-panel">
+                <div class="list-panel-header">
+                    <h5 class="section-title">
+                        <i class="material-icons green-text">check_circle</i>
+                        Applied
+                        <span class="badge" id="applied-count">0</span>
+                    </h5>
+                </div>
+                <div class="list-panel-body" id="applied-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Job Detail Modal -->
+    <div id="job-detail-modal" class="modal modal-fixed-footer">
+        <div class="modal-content" id="job-detail-content"></div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Close</a>
+            <button class="btn waves-effect waves-light green" id="modal-apply-btn" onclick="applyToCurrentJob()">
+                <i class="material-icons left">bolt</i>Quick Apply
+            </button>
+        </div>
+    </div>
+    
+    <!-- Account Modal: Login when guest, "Go to Home" when logged in -->
+    <div id="account-modal" class="modal">
+        <div class="modal-content">
+            <!-- Guest: Login panel -->
+            <div id="jobs-login-panel">
+                <h4 class="center-align"><i class="material-icons blue-text">login</i> Log in</h4>
+                <p class="center-align grey-text">Choose your account type</p>
+                
+                <!-- Login Type Tabs -->
+                <div class="row" style="margin-bottom: 0;">
+                    <div class="col s12">
+                        <ul class="tabs jobs-login-tabs">
+                            <li class="tab col s6"><a href="#jobs-login-jobseeker-tab" class="active" onclick="switchJobsLoginTab('jobseeker')"><i class="material-icons left">work</i>Job Seeker</a></li>
+                            <li class="tab col s6"><a href="#jobs-login-employer-tab" onclick="switchJobsLoginTab('employer')"><i class="material-icons left">business</i>Employer</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Job Seeker Login -->
+                <div id="jobs-login-jobseeker-tab" class="jobs-login-tab-content">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Sign in to save your applied and skipped jobs</p>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="jobs-login-email" required>
+                        <label for="jobs-login-email">Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="jobs-login-password" required>
+                        <label for="jobs-login-password">Password</label>
+                    </div>
+                    <p id="jobs-login-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <!-- Employer Login -->
+                <div id="jobs-login-employer-tab" class="jobs-login-tab-content" style="display: none;">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Sign in to manage jobs and applicants</p>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="jobs-employer-login-email" required>
+                        <label for="jobs-employer-login-email">Work Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="jobs-employer-login-password" required>
+                        <label for="jobs-employer-login-password">Password</label>
+                    </div>
+                    <p id="jobs-employer-login-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <p class="center-align" style="margin-top: 16px;">
+                    <a href="#" onclick="showJobsAccountPanel('create'); return false;" class="blue-text">Don't have an account? Create one</a>
+                </p>
+            </div>
+            <!-- Guest: Sign up panel -->
+            <div id="jobs-create-panel" style="display: none;">
+                <h4 class="center-align"><i class="material-icons green-text">person_add</i> Create account</h4>
+                <p class="center-align grey-text">Choose your account type</p>
+                
+                <!-- Signup Type Tabs -->
+                <div class="row" style="margin-bottom: 0;">
+                    <div class="col s12">
+                        <ul class="tabs jobs-signup-tabs">
+                            <li class="tab col s6"><a href="#jobs-signup-jobseeker-tab" class="active" onclick="switchJobsSignupTab('jobseeker')"><i class="material-icons left">work</i>Job Seeker</a></li>
+                            <li class="tab col s6"><a href="#jobs-signup-employer-tab" onclick="switchJobsSignupTab('employer')"><i class="material-icons left">business</i>Employer</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Job Seeker Signup -->
+                <div id="jobs-signup-jobseeker-tab" class="jobs-signup-tab-content">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Sign up to save your applied and skipped jobs</p>
+                    <div class="row">
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="jobs-create-firstName" required>
+                            <label for="jobs-create-firstName">First Name</label>
+                        </div>
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="jobs-create-lastName" required>
+                            <label for="jobs-create-lastName">Last Name</label>
+                        </div>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="jobs-create-email" required>
+                        <label for="jobs-create-email">Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="jobs-create-password" required minlength="6">
+                        <label for="jobs-create-password">Password (min 6 characters)</label>
+                    </div>
+                    <p id="jobs-create-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <!-- Employer Signup -->
+                <div id="jobs-signup-employer-tab" class="jobs-signup-tab-content" style="display: none;">
+                    <div class="divider"></div>
+                    <p class="center-align grey-text" style="margin: 10px 0;">Post jobs and find top talent</p>
+                    <div class="row">
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="jobs-employer-firstName" required>
+                            <label for="jobs-employer-firstName">First Name</label>
+                        </div>
+                        <div class="input-field col s12 m6">
+                            <i class="material-icons prefix">person</i>
+                            <input type="text" id="jobs-employer-lastName" required>
+                            <label for="jobs-employer-lastName">Last Name</label>
+                        </div>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">business</i>
+                        <input type="text" id="jobs-employer-companyName" required>
+                        <label for="jobs-employer-companyName">Company Name</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input type="email" id="jobs-employer-email" required>
+                        <label for="jobs-employer-email">Work Email</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">lock</i>
+                        <input type="password" id="jobs-employer-password" required minlength="6">
+                        <label for="jobs-employer-password">Password (min 6 characters)</label>
+                    </div>
+                    <p id="jobs-employer-error" class="red-text center-align" style="display: none;"></p>
+                </div>
+                
+                <p class="center-align" style="margin-top: 16px;">
+                    <a href="#" onclick="showJobsAccountPanel('login'); return false;" class="blue-text">Already have an account? Log in</a>
+                </p>
+            </div>
+            <!-- Logged in: go to home for full profile -->
+            <div id="jobs-profile-panel" style="display: none;">
+                <div class="center-align">
+                    <p>To edit your profile, use the home page.</p>
+                    <a href="/" class="btn blue waves-effect waves-light">Go to Home</a>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="modal-close btn-flat">Close</a>
+            <span id="jobs-login-footer">
+                <button type="button" id="jobs-login-btn" class="btn waves-effect waves-light blue" onclick="submitJobsLogin()"><i class="material-icons left">login</i>Log in</button>
+            </span>
+            <span id="jobs-create-footer" style="display: none;">
+                <button type="button" id="jobs-signup-btn" class="btn waves-effect waves-light green" onclick="submitJobsPageSignup()"><i class="material-icons left">person_add</i>Create Account</button>
+            </span>
+            <span id="jobs-profile-footer" style="display: none;"></span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        // ===== State =====
+        let allJobs = [];
+        let allJobsMap = {};
+        let currentIndex = 0;
+        let currentCard = null;
+        let userProfile = null;
+        let authToken = null;
+        let currentUser = null;
+        let skippedJobs = [];
+        let appliedJobs = [];
+        let appliedJobsData = {};
+        let currentViewingJob = null;
+        
+        // ===== Init =====
+        document.addEventListener('DOMContentLoaded', async function() {
+            M.Sidenav.init(document.querySelectorAll('.sidenav'));
+            M.Modal.init(document.querySelectorAll('.modal'));
+            
+            await loadAuth();
+            loadUserProfile();
+            updateHeaderAuth();
+            console.log('[DEBUG] After loadAuth: currentUser=', currentUser, 'authToken=', authToken ? authToken.substring(0,20)+'...' : null);
+            // Database only: when logged in load from API; when not, use empty (no localStorage)
+            if (currentUser && authToken) {
+                await fetchUserAppliedAndSkipped();
+                console.log('[DEBUG] After fetch: appliedJobs=', appliedJobs, 'skippedJobs=', skippedJobs);
+                localStorage.removeItem('jobfinder_applied');
+                localStorage.removeItem('jobfinder_applied_data');
+                localStorage.removeItem('jobfinder_skipped');
+            } else {
+                appliedJobs = [];
+                appliedJobsData = {};
+                skippedJobs = [];
+            }
+            loadJobs();
+            setupAppliedListDragAndDrop();
+            setupSwipeDeckDropZone();
+        });
+        
+        function setupAppliedListDragAndDrop() {
+            const list = document.getElementById('applied-list');
+            if (!list) return;
+            list.addEventListener('dragstart', function(e) {
+                const item = e.target.closest('.job-list-item[data-job-id]');
+                if (item) {
+                    e.dataTransfer.setData('text/plain', item.getAttribute('data-job-id'));
+                    e.dataTransfer.effectAllowed = 'move';
+                    item.classList.add('dragging');
+                }
+            });
+            list.addEventListener('dragend', function(e) {
+                const item = e.target.closest('.job-list-item');
+                if (item) item.classList.remove('dragging');
+            });
+        }
+        
+        function setupSwipeDeckDropZone() {
+            const deck = document.getElementById('find-jobs-section');
+            if (!deck) return;
+            deck.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                deck.classList.add('drag-over-deck');
+            });
+            deck.addEventListener('dragleave', function(e) {
+                if (!deck.contains(e.relatedTarget)) deck.classList.remove('drag-over-deck');
+            });
+            deck.addEventListener('drop', function(e) {
+                e.preventDefault();
+                deck.classList.remove('drag-over-deck');
+                const jobId = e.dataTransfer.getData('text/plain');
+                if (jobId) removeFromApplied(jobId);
+            });
+        }
+        
+        // ===== Update header based on auth state =====
+        function updateHeaderAuth() {
+            const guest = document.getElementById('nav-auth-guest');
+            const user = document.getElementById('nav-auth-user');
+            const logoutEl = document.getElementById('nav-auth-logout');
+            const sGuest = document.getElementById('sidenav-auth-guest');
+            const sUser = document.getElementById('sidenav-auth-user');
+            const sUser2 = document.getElementById('sidenav-auth-user-2');
+            const sEmail = document.getElementById('sidenav-user-email');
+            const displayEmail = currentUser && currentUser.email ? currentUser.email.toLowerCase() : 'Find Jobs';
+            
+            if (currentUser && authToken) {
+                if (guest) guest.style.display = 'none';
+                if (user) user.style.display = '';
+                if (logoutEl) logoutEl.style.display = '';
+                if (sGuest) sGuest.style.display = 'none';
+                if (sUser) sUser.style.display = '';
+                if (sUser2) sUser2.style.display = '';
+                if (sEmail) sEmail.textContent = displayEmail;
+            } else {
+                if (guest) guest.style.display = '';
+                if (user) user.style.display = 'none';
+                if (logoutEl) logoutEl.style.display = 'none';
+                if (sGuest) sGuest.style.display = '';
+                if (sUser) sUser.style.display = 'none';
+                if (sUser2) sUser2.style.display = 'none';
+                if (sEmail) sEmail.textContent = 'Find Jobs';
+            }
+        }
+        
+        // ===== Logout =====
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            userProfile = null;
+            appliedJobs = [];
+            appliedJobsData = {};
+            skippedJobs = [];
+            localStorage.removeItem('jobfinder_token');
+            localStorage.removeItem('jobfinder_user');
+            localStorage.removeItem('jobfinder_profile');
+            updateHeaderAuth();
+            M.toast({ html: 'Logged out', classes: 'blue' });
+            // Reload to reset state
+            window.location.reload();
+        }
+        
+        function getAuthHeaders() {
+            const token = authToken || localStorage.getItem('jobfinder_token');
+            const h = { 'Content-Type': 'application/json' };
+            if (token) h['Authorization'] = 'Bearer ' + token;
+            return h;
+        }
+        
+        async function loadAuth() {
+            authToken = localStorage.getItem('jobfinder_token');
+            const savedUser = localStorage.getItem('jobfinder_user');
+            if (savedUser) {
+                try { currentUser = JSON.parse(savedUser); } catch(e) {}
+            }
+            // If we have a token but no user (e.g. cleared storage or different tab), fetch from API
+            if (authToken && !currentUser) {
+                try {
+                    const response = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+                    const result = await response.json();
+                    if (result.statusCode === 200 && result.data) {
+                        currentUser = result.data;
+                        localStorage.setItem('jobfinder_user', JSON.stringify(currentUser));
+                        const saved = localStorage.getItem('jobfinder_profile');
+                        if (!saved && currentUser.skills && Array.isArray(currentUser.skills)) {
+                            const profile = {
+                                name: (currentUser.firstName || '') + ' ' + (currentUser.lastName || ''),
+                                email: currentUser.email,
+                                phone: currentUser.phone || '',
+                                location: currentUser.location || '',
+                                title: currentUser.title || '',
+                                skills: Array.isArray(currentUser.skills) ? currentUser.skills.join(', ') : (currentUser.skills || '')
+                            };
+                            localStorage.setItem('jobfinder_profile', JSON.stringify(profile));
+                        }
+                    }
+                } catch (e) { console.error('Auth me failed:', e); }
+            }
+        }
+        
+        function loadUserProfile() {
+            const saved = localStorage.getItem('jobfinder_profile');
+            if (saved) {
+                try { userProfile = JSON.parse(saved); } catch(e) {}
+            }
+        }
+        
+        async function fetchUserAppliedAndSkipped() {
+            if (!currentUser || !authToken) {
+                console.log('[DEBUG] fetchUserAppliedAndSkipped: skipped - currentUser:', !!currentUser, 'authToken:', !!authToken);
+                return;
+            }
+            console.log('[DEBUG] fetchUserAppliedAndSkipped: fetching for user', currentUser.id);
+            try {
+                const [appsRes, skippedRes] = await Promise.all([
+                    fetch('/api/applications/me', { headers: getAuthHeaders() }),
+                    fetch('/api/users/me/skipped', { headers: getAuthHeaders() })
+                ]);
+                const appsJson = await appsRes.json();
+                const skippedJson = await skippedRes.json();
+                console.log('[DEBUG] applications response:', appsJson);
+                console.log('[DEBUG] skipped response:', skippedJson);
+                if (appsJson.statusCode === 200 && Array.isArray(appsJson.data)) {
+                    appliedJobs = [...new Set(appsJson.data.map(a => a.jobId))];
+                    appliedJobsData = {};
+                    appsJson.data.forEach(app => {
+                        appliedJobsData[app.jobId] = {
+                            applicationId: app.id,
+                            status: app.status,
+                            lastUpdated: app.lastUpdated,
+                            appliedDate: app.appliedDate,
+                            jobTitle: app.jobTitle,
+                            company: app.company
+                        };
+                    });
+                }
+                if (skippedJson.statusCode === 200 && skippedJson.data && Array.isArray(skippedJson.data.skippedJobIds)) {
+                    skippedJobs = [...new Set(skippedJson.data.skippedJobIds)];
+                }
+            } catch (e) { console.error('Failed to fetch user applied/skipped', e); }
+        }
+        
+        function openAccountModal() {
+            showJobsAccountPanel(currentUser && authToken ? 'profile' : 'login');
+            M.Modal.getInstance(document.getElementById('account-modal')).open();
+            setTimeout(function() { M.updateTextFields(); }, 100);
+        }
+        
+        // Track active login tab for jobs page
+        let jobsActiveLoginTab = 'jobseeker';
+        
+        function switchJobsLoginTab(tabType) {
+            jobsActiveLoginTab = tabType;
+            const jobseekerTab = document.getElementById('jobs-login-jobseeker-tab');
+            const employerTab = document.getElementById('jobs-login-employer-tab');
+            const submitBtn = document.getElementById('jobs-login-btn');
+            
+            if (tabType === 'employer') {
+                if (jobseekerTab) jobseekerTab.style.display = 'none';
+                if (employerTab) employerTab.style.display = 'block';
+                if (submitBtn) submitBtn.innerHTML = '<i class="material-icons left">business</i>Log in as Employer';
+            } else {
+                if (jobseekerTab) jobseekerTab.style.display = 'block';
+                if (employerTab) employerTab.style.display = 'none';
+                if (submitBtn) submitBtn.innerHTML = '<i class="material-icons left">login</i>Log in';
+            }
+        }
+        
+        function submitJobsLogin() {
+            if (jobsActiveLoginTab === 'employer') {
+                submitEmployerLoginFromJobsPage();
+            } else {
+                submitLoginFromJobsPage();
+            }
+        }
+        
+        async function submitEmployerLoginFromJobsPage() {
+            const email = (document.getElementById('jobs-employer-login-email')?.value || '').trim();
+            const password = document.getElementById('jobs-employer-login-password')?.value || '';
+            const errEl = document.getElementById('jobs-employer-login-error');
+            
+            if (!email || !password) {
+                if (errEl) { errEl.textContent = 'Please enter email and password'; errEl.style.display = 'block'; }
+                return;
+            }
+            if (errEl) errEl.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const result = await response.json();
+                
+                if (result.statusCode === 200 && result.data && result.data.token && result.data.user) {
+                    if (result.data.user.role !== 'employer') {
+                        if (errEl) { errEl.textContent = 'This is not an employer account. Use Job Seeker login.'; errEl.style.display = 'block'; }
+                        return;
+                    }
+                    authToken = result.data.token;
+                    currentUser = result.data.user;
+                    localStorage.setItem('jobfinder_token', authToken);
+                    localStorage.setItem('jobfinder_user', JSON.stringify(currentUser));
+                    M.Modal.getInstance(document.getElementById('account-modal')).close();
+                    updateHeaderAuth();
+                    M.toast({ html: 'Logged in! Redirecting to employer dashboard...', classes: 'green' });
+                    setTimeout(() => { window.location.href = '/'; }, 500);
+                } else {
+                    if (errEl) { errEl.textContent = result.message || 'Login failed'; errEl.style.display = 'block'; }
+                }
+            } catch (e) {
+                console.error('Employer login error:', e);
+                if (errEl) { errEl.textContent = 'Cannot reach server. Try again.'; errEl.style.display = 'block'; }
+            }
+        }
+        
+        // Track active signup tab for jobs page
+        let jobsActiveSignupTab = 'jobseeker';
+        
+        function switchJobsSignupTab(tabType) {
+            jobsActiveSignupTab = tabType;
+            const jobseekerTab = document.getElementById('jobs-signup-jobseeker-tab');
+            const employerTab = document.getElementById('jobs-signup-employer-tab');
+            const submitBtn = document.getElementById('jobs-signup-btn');
+            
+            if (tabType === 'employer') {
+                if (jobseekerTab) jobseekerTab.style.display = 'none';
+                if (employerTab) employerTab.style.display = 'block';
+                if (submitBtn) submitBtn.innerHTML = '<i class="material-icons left">business</i>Create Employer Account';
+            } else {
+                if (jobseekerTab) jobseekerTab.style.display = 'block';
+                if (employerTab) employerTab.style.display = 'none';
+                if (submitBtn) submitBtn.innerHTML = '<i class="material-icons left">person_add</i>Create Account';
+            }
+        }
+        
+        function submitJobsPageSignup() {
+            if (jobsActiveSignupTab === 'employer') {
+                submitEmployerFromJobsPage();
+            } else {
+                submitSignupFromJobsPage();
+            }
+        }
+        
+        async function submitEmployerFromJobsPage() {
+            const firstName = (document.getElementById('jobs-employer-firstName')?.value || '').trim();
+            const lastName = (document.getElementById('jobs-employer-lastName')?.value || '').trim();
+            const companyName = (document.getElementById('jobs-employer-companyName')?.value || '').trim();
+            const email = (document.getElementById('jobs-employer-email')?.value || '').trim();
+            const password = document.getElementById('jobs-employer-password')?.value || '';
+            const errEl = document.getElementById('jobs-employer-error');
+            
+            if (!firstName || !lastName || !companyName || !email || !password) {
+                if (errEl) { errEl.textContent = 'Please fill all required fields.'; errEl.style.display = 'block'; }
+                return;
+            }
+            if (password.length < 6) {
+                if (errEl) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; }
+                return;
+            }
+            if (errEl) errEl.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ firstName, lastName, email, password, companyName, role: 'employer' })
+                });
+                const result = await response.json();
+                if (result.statusCode === 201 && result.data && result.data.token && result.data.user) {
+                    authToken = result.data.token;
+                    currentUser = result.data.user;
+                    localStorage.setItem('jobfinder_token', authToken);
+                    localStorage.setItem('jobfinder_user', JSON.stringify(currentUser));
+                    M.Modal.getInstance(document.getElementById('account-modal')).close();
+                    updateHeaderAuth();
+                    M.toast({ html: 'Employer account created!', classes: 'green' });
+                    window.location.href = '/';
+                } else {
+                    if (errEl) { errEl.textContent = result.message || 'Signup failed.'; errEl.style.display = 'block'; }
+                }
+            } catch (e) {
+                console.error('Employer signup error:', e);
+                if (errEl) { errEl.textContent = 'Cannot reach server. Try again.'; errEl.style.display = 'block'; }
+            }
+        }
+        
+        function showJobsAccountPanel(panel) {
+            const loginPanel = document.getElementById('jobs-login-panel');
+            const createPanel = document.getElementById('jobs-create-panel');
+            const profilePanel = document.getElementById('jobs-profile-panel');
+            const loginFooter = document.getElementById('jobs-login-footer');
+            const createFooter = document.getElementById('jobs-create-footer');
+            const profileFooter = document.getElementById('jobs-profile-footer');
+            document.getElementById('jobs-login-error').style.display = 'none';
+            if (document.getElementById('jobs-employer-login-error')) document.getElementById('jobs-employer-login-error').style.display = 'none';
+            if (document.getElementById('jobs-create-error')) document.getElementById('jobs-create-error').style.display = 'none';
+            if (document.getElementById('jobs-employer-error')) document.getElementById('jobs-employer-error').style.display = 'none';
+            
+            if (panel === 'profile' && currentUser && authToken) {
+                if (loginPanel) loginPanel.style.display = 'none';
+                if (createPanel) createPanel.style.display = 'none';
+                if (profilePanel) profilePanel.style.display = 'block';
+                if (loginFooter) loginFooter.style.display = 'none';
+                if (createFooter) createFooter.style.display = 'none';
+                if (profileFooter) profileFooter.style.display = 'none';
+                return;
+            }
+            if (panel === 'create') {
+                if (loginPanel) loginPanel.style.display = 'none';
+                if (createPanel) createPanel.style.display = 'block';
+                if (profilePanel) profilePanel.style.display = 'none';
+                if (loginFooter) loginFooter.style.display = 'none';
+                if (createFooter) createFooter.style.display = 'inline';
+                if (profileFooter) profileFooter.style.display = 'none';
+                // Initialize tabs and reset to jobseeker
+                const tabsEl = document.querySelector('.jobs-signup-tabs');
+                if (tabsEl) M.Tabs.init(tabsEl);
+                jobsActiveSignupTab = 'jobseeker';
+                switchJobsSignupTab('jobseeker');
+                return;
+            }
+            // login
+            if (loginPanel) loginPanel.style.display = 'block';
+            if (createPanel) createPanel.style.display = 'none';
+            if (profilePanel) profilePanel.style.display = 'none';
+            if (loginFooter) loginFooter.style.display = 'inline';
+            if (createFooter) createFooter.style.display = 'none';
+            if (profileFooter) profileFooter.style.display = 'none';
+            // Initialize login tabs and reset to jobseeker
+            const loginTabsEl = document.querySelector('.jobs-login-tabs');
+            if (loginTabsEl) M.Tabs.init(loginTabsEl);
+            jobsActiveLoginTab = 'jobseeker';
+            switchJobsLoginTab('jobseeker');
+        }
+        
+        async function submitLoginFromJobsPage() {
+            const emailEl = document.getElementById('jobs-login-email');
+            const passwordEl = document.getElementById('jobs-login-password');
+            const errEl = document.getElementById('jobs-login-error');
+            if (!emailEl || !passwordEl || !errEl) return;
+            const email = (emailEl.value || '').trim();
+            const password = passwordEl.value || '';
+            errEl.style.display = 'none';
+            errEl.textContent = '';
+            if (!email || !password) {
+                errEl.textContent = 'Please enter email and password';
+                errEl.style.display = 'block';
+                return;
+            }
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const result = await response.json();
+                if (result.statusCode === 200 && result.data && result.data.token && result.data.user) {
+                    authToken = result.data.token;
+                    currentUser = result.data.user;
+                    localStorage.setItem('jobfinder_token', authToken);
+                    localStorage.setItem('jobfinder_user', JSON.stringify(currentUser));
+                    if (currentUser.skills && Array.isArray(currentUser.skills)) {
+                        const profile = {
+                            name: (currentUser.firstName || '') + ' ' + (currentUser.lastName || ''),
+                            email: currentUser.email,
+                            phone: currentUser.phone || '',
+                            location: currentUser.location || '',
+                            title: currentUser.title || '',
+                            skills: currentUser.skills.join(', ')
+                        };
+                        localStorage.setItem('jobfinder_profile', JSON.stringify(profile));
+                        userProfile = profile;
+                    }
+                    M.Modal.getInstance(document.getElementById('account-modal')).close();
+                    updateHeaderAuth();
+                    await fetchUserAppliedAndSkipped();
+                    updateTabCounts();
+                    renderAppliedList();
+                    renderSkippedList();
+                    M.toast({ html: 'Logged in!', classes: 'green' });
+                } else {
+                    errEl.textContent = result.message || 'Login failed';
+                    errEl.style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Login error:', e);
+                errEl.textContent = 'Cannot reach server. Try again.';
+                errEl.style.display = 'block';
+            }
+        }
+        
+        async function submitSignupFromJobsPage() {
+            const firstName = (document.getElementById('jobs-create-firstName') && document.getElementById('jobs-create-firstName').value.trim()) || '';
+            const lastName = (document.getElementById('jobs-create-lastName') && document.getElementById('jobs-create-lastName').value.trim()) || '';
+            const email = (document.getElementById('jobs-create-email') && document.getElementById('jobs-create-email').value.trim()) || '';
+            const password = (document.getElementById('jobs-create-password') && document.getElementById('jobs-create-password').value) || '';
+            const errEl = document.getElementById('jobs-create-error');
+            if (!errEl) return;
+            errEl.style.display = 'none';
+            errEl.textContent = '';
+            if (!firstName || !lastName) {
+                errEl.textContent = 'Please enter first and last name';
+                errEl.style.display = 'block';
+                return;
+            }
+            if (!email) {
+                errEl.textContent = 'Please enter your email';
+                errEl.style.display = 'block';
+                return;
+            }
+            if (!password || password.length < 6) {
+                errEl.textContent = 'Password must be at least 6 characters';
+                errEl.style.display = 'block';
+                return;
+            }
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, firstName, lastName, phone: '', role: 'jobseeker', location: '', title: '', skills: [] })
+                });
+                const result = await response.json();
+                if (result.statusCode === 201 && result.data && result.data.token && result.data.user) {
+                    authToken = result.data.token;
+                    currentUser = result.data.user;
+                    localStorage.setItem('jobfinder_token', authToken);
+                    localStorage.setItem('jobfinder_user', JSON.stringify(currentUser));
+                    if (currentUser.skills && Array.isArray(currentUser.skills)) {
+                        const profile = { name: (currentUser.firstName || '') + ' ' + (currentUser.lastName || ''), email: currentUser.email, phone: currentUser.phone || '', location: currentUser.location || '', title: currentUser.title || '', skills: currentUser.skills.join(', ') };
+                        localStorage.setItem('jobfinder_profile', JSON.stringify(profile));
+                        userProfile = profile;
+                    } else {
+                        userProfile = { name: (currentUser.firstName || '') + ' ' + (currentUser.lastName || ''), email: currentUser.email, phone: '', location: '', title: '', skills: '' };
+                        localStorage.setItem('jobfinder_profile', JSON.stringify(userProfile));
+                    }
+                    M.Modal.getInstance(document.getElementById('account-modal')).close();
+                    updateHeaderAuth();
+                    await fetchUserAppliedAndSkipped();
+                    updateTabCounts();
+                    renderAppliedList();
+                    renderSkippedList();
+                    M.toast({ html: 'Account created! You\'re logged in.', classes: 'green' });
+                } else {
+                    errEl.textContent = result.message || 'Sign up failed';
+                    errEl.style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Signup error:', e);
+                errEl.textContent = 'Cannot reach server. Try again.';
+                errEl.style.display = 'block';
+            }
+        }
+        
+        // ===== One-page: update section badges and render lists =====
+        function updateTabCounts() {
+            const appliedEl = document.getElementById('applied-count');
+            const skippedEl = document.getElementById('skipped-count');
+            if (appliedEl) appliedEl.textContent = appliedJobs.length;
+            if (skippedEl) skippedEl.textContent = skippedJobs.length;
+        }
+        
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // ===== Load Jobs =====
+        async function loadJobs() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const searchTerm = urlParams.get('search');
+                
+                let url = '/api/jobs';
+                if (searchTerm) {
+                    url = '/api/jobs/search?keyword=' + encodeURIComponent(searchTerm);
+                    document.querySelector('.swipe-header p').textContent = `Showing results for "${searchTerm}"`;
+                }
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.statusCode === 200 && Array.isArray(result.data)) {
+                    // Store all jobs in map for lookup
+                    result.data.forEach(job => { allJobsMap[job.id] = job; });
+                    
+                    const applyJobId = urlParams.get('apply');
+                    if (applyJobId) {
+                        // Coming from landing page with a selected job: show ALL jobs in deck, selected on top (don't filter skipped/applied)
+                        allJobs = result.data.slice();
+                    } else {
+                        // Normal browsing: filter out already swiped jobs for swipe view
+                        allJobs = result.data.filter(job =>
+                            !skippedJobs.includes(job.id) && !appliedJobs.includes(job.id)
+                        );
+                    }
+                    
+                    // Sort by match score
+                    allJobs.sort((a, b) => calculateMatchScore(b) - calculateMatchScore(a));
+                    
+                    if (currentUser && authToken) fetchApplicationStatuses();
+                    
+                    updateTabCounts();
+                    renderAppliedList();
+                    renderSkippedList();
+                    
+                    if (allJobs.length > 0) {
+                        document.getElementById('loading-state').style.display = 'none';
+                        document.getElementById('swipe-actions').style.display = 'flex';
+                        // If landing page sent ?apply=JOB_ID, put that job on top of the deck
+                        if (applyJobId) {
+                            const idx = allJobs.findIndex(j => j.id === applyJobId);
+                            if (idx >= 0) {
+                                const job = allJobs[idx];
+                                allJobs.splice(idx, 1);
+                                allJobs.unshift(job);
+                                currentIndex = 0;
+                            } else {
+                                const job = allJobsMap[applyJobId];
+                                if (job) {
+                                    allJobs = [job, ...allJobs];
+                                    currentIndex = 0;
+                                }
+                            }
+                        }
+                        renderCards();
+                        updateProgress();
+                    } else {
+                        showNoMoreJobs();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                document.getElementById('loading-state').innerHTML = `
+                    <i class="material-icons">error</i>
+                    <h4>Failed to load jobs</h4>
+                    <p>Please refresh and try again</p>
+                    <button class="btn white blue-text" onclick="location.reload()">Refresh</button>
+                `;
+            }
+        }
+        
+        async function fetchApplicationStatuses() {
+            if (!currentUser || !authToken) return;
+            try {
+                const response = await fetch('/api/applications/me', { headers: getAuthHeaders() });
+                const result = await response.json();
+                if (result.statusCode === 200 && Array.isArray(result.data)) {
+                    appliedJobs = result.data.map(a => a.jobId);
+                    appliedJobsData = {};
+                    result.data.forEach(app => {
+                        appliedJobsData[app.jobId] = {
+                            status: app.status,
+                            lastUpdated: app.lastUpdated,
+                            appliedDate: app.appliedDate,
+                            jobTitle: app.jobTitle,
+                            company: app.company
+                        };
+                    });
+                    updateTabCounts();
+                }
+            } catch (e) { console.error('Failed to fetch statuses', e); }
+        }
+        
+        // ===== Calculate Match Score =====
+        function calculateMatchScore(job) {
+            if (!userProfile || !userProfile.skills) return 50;
+            const userSkills = userProfile.skills.toLowerCase().split(',').map(s => s.trim());
+            const jobRequirements = (job.requirements || []).map(r => String(r).toLowerCase());
+            if (jobRequirements.length === 0) return 60;
+            let matches = 0;
+            userSkills.forEach(skill => {
+                if (skill && jobRequirements.some(req => req.includes(skill))) matches++;
+            });
+            return Math.min(Math.round((matches / Math.max(jobRequirements.length, 1)) * 100) + 40, 98);
+        }
+        
+        // ===== Render Swipe Cards =====
+        function renderCards() {
+            const stack = document.getElementById('cards-stack');
+            stack.innerHTML = '';
+            
+            for (let i = Math.min(2, allJobs.length - currentIndex - 1); i >= 0; i--) {
+                const jobIndex = currentIndex + i;
+                if (jobIndex >= allJobs.length) continue;
+                const job = allJobs[jobIndex];
+                const matchScore = calculateMatchScore(job);
+                const card = createCardElement(job, matchScore, i);
+                stack.appendChild(card);
+            }
+            
+            const topCard = stack.querySelector('.swipe-card:not(.behind):not(.behind-2)');
+            if (topCard) {
+                currentCard = topCard;
+                setupDrag(topCard);
+            }
+        }
+        
+        function createCardElement(job, matchScore, stackPosition) {
+            const card = document.createElement('div');
+            card.className = 'swipe-card';
+            if (stackPosition === 1) card.classList.add('behind');
+            if (stackPosition === 2) card.classList.add('behind-2');
+            card.dataset.jobId = job.id;
+            
+            const matchClass = matchScore >= 80 ? 'high' : (matchScore >= 60 ? 'medium' : '');
+            const requirements = (job.requirements || []).slice(0, 4);
+            
+            card.innerHTML = `
+                <div class="swipe-indicator skip">SKIP</div>
+                <div class="swipe-indicator apply">APPLY</div>
+                <div class="card-header">
+                    <span class="match-badge ${matchClass}">${matchScore}% Match</span>
+                    <img src="${job.logo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(job.company || 'J')}" class="card-company-logo" alt="">
+                    <h5>${escapeHtml(job.title || '')}</h5>
+                    <p class="company-name">${escapeHtml(job.company || '')}</p>
+                </div>
+                <div class="card-body">
+                    <div class="card-meta">
+                        <span class="card-meta-item"><i class="material-icons">location_on</i>${escapeHtml(job.location || '')}</span>
+                        <span class="card-meta-item"><i class="material-icons">work</i>${escapeHtml(job.type || '')}</span>
+                        ${job.responseTime ? `<span class="card-meta-item"><i class="material-icons">schedule</i>${escapeHtml(job.responseTime)}</span>` : ''}
+                    </div>
+                    <div class="card-salary">${escapeHtml(job.salary || 'Salary not specified')}</div>
+                    ${requirements.length > 0 ? `
+                        <div class="card-requirements">
+                            <h6>Requirements</h6>
+                            ${requirements.map(r => `<span class="chip">${escapeHtml(r)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    <p class="card-description">${escapeHtml(job.description || '')}</p>
+                </div>
+            `;
+            return card;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ===== Drag Handling =====
+        function setupDrag(card) {
+            let startX = 0, currentX = 0, isDragging = false;
+            
+            const onStart = (e) => {
+                isDragging = true;
+                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                card.style.transition = 'none';
+            };
+            
+            const onMove = (e) => {
+                if (!isDragging) return;
+                const x = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                currentX = x - startX;
+                const rotation = currentX * 0.05;
+                card.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+                card.classList.remove('dragging-left', 'dragging-right');
+                if (currentX < -50) card.classList.add('dragging-left');
+                if (currentX > 50) card.classList.add('dragging-right');
+            };
+            
+            const onEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                card.style.transition = '';
+                card.classList.remove('dragging-left', 'dragging-right');
+                if (currentX < -100) swipeCard('left');
+                else if (currentX > 100) swipeCard('right');
+                else card.style.transform = '';
+            };
+            
+            card.addEventListener('mousedown', onStart);
+            card.addEventListener('touchstart', onStart, { passive: true });
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('touchmove', onMove, { passive: true });
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchend', onEnd);
+        }
+        
+        // ===== Swipe Actions =====
+        function swipeCard(direction) {
+            if (!currentCard || currentIndex >= allJobs.length) return;
+            
+            // If not logged in, show login/signup modal instead of swiping
+            if (!currentUser || !authToken) {
+                openAccountModal();
+                return;
+            }
+            
+            const job = allJobs[currentIndex];
+            currentCard.classList.add(direction === 'left' ? 'swiping-left' : 'swiping-right');
+            
+            if (direction === 'left') {
+                skippedJobs.push(job.id);
+                if (currentUser && authToken) {
+                    console.log('[DEBUG] Skipping job', job.id, '- calling API');
+                    fetch('/api/users/me/skipped', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ jobId: job.id }) })
+                        .then(r => r.json())
+                        .then(res => console.log('[DEBUG] Skip API response:', res))
+                        .catch(e => console.error('[DEBUG] Skip API error:', e));
+                }
+            } else {
+                applyToJob(job);
+            }
+            
+            setTimeout(() => {
+                currentIndex++;
+                updateTabCounts();
+                if (direction === 'left') renderSkippedList();
+                else renderAppliedList();
+                if (currentIndex < allJobs.length) {
+                    renderCards();
+                    updateProgress();
+                } else {
+                    showNoMoreJobs();
+                }
+            }, 400);
+        }
+        
+        function applyToJob(job) {
+            if (!appliedJobs.includes(job.id)) {
+                appliedJobs.push(job.id);
+                appliedJobsData[job.id] = {
+                    appliedDate: new Date().toISOString().split('T')[0],
+                    status: 'submitted',
+                    jobTitle: job.title,
+                    company: job.company,
+                    location: job.location,
+                    salary: job.salary,
+                    logo: job.logo
+                };
+            }
+            
+            M.toast({ html: `<i class="material-icons left">check</i> Applied to ${job.title}!`, classes: 'green' });
+            
+            if (userProfile && userProfile.email && currentUser && authToken) {
+                fetch('/api/applications', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        jobId: job.id,
+                        jobTitle: job.title,
+                        company: job.company,
+                        userId: currentUser.id,
+                        applicantName: userProfile.name || (userProfile.firstName + ' ' + userProfile.lastName) || '',
+                        email: userProfile.email,
+                        phone: userProfile.phone || '',
+                        location: userProfile.location || ''
+                    })
+                }).then(res => res.json()).then(result => {
+                    if (result.statusCode === 201 && result.data && appliedJobsData[job.id]) {
+                        appliedJobsData[job.id].status = result.data.status;
+                        appliedJobsData[job.id].applicationId = result.data.id;
+                    }
+                }).catch(err => console.error('Failed to submit:', err));
+            }
+        }
+        
+        function applyToCurrentJob() {
+            M.Modal.getInstance(document.getElementById('job-detail-modal')).close();
+            if (currentViewingJob) {
+                if (skippedJobs.includes(currentViewingJob.id)) {
+                    reconsiderJob(currentViewingJob.id);
+                } else {
+                    swipeCard('right');
+                }
+            }
+        }
+        
+        // ===== Show Job Details =====
+        function showJobDetails(job = null) {
+            if (!job && currentIndex < allJobs.length) {
+                job = allJobs[currentIndex];
+            }
+            if (!job) return;
+            
+            currentViewingJob = job;
+            const matchScore = calculateMatchScore(job);
+            const requirements = job.requirements || [];
+            const benefits = job.benefits || [];
+            const isApplied = appliedJobs.includes(job.id);
+            const isSkipped = skippedJobs.includes(job.id);
+            
+            document.getElementById('job-detail-content').innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <img src="${job.logo || ''}" alt="" style="width: 60px; height: 60px; border-radius: 12px;">
+                    <div>
+                        <h4 style="margin: 0;">${escapeHtml(job.title)}</h4>
+                        <p class="grey-text" style="margin: 5px 0 0 0;">${escapeHtml(job.company)} • ${escapeHtml(job.location)}</p>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div style="margin: 20px 0;">
+                    <p><strong>Type:</strong> ${escapeHtml(job.type)}</p>
+                    <p><strong>Salary:</strong> ${escapeHtml(job.salary || 'Not specified')}</p>
+                    <p><strong>Match Score:</strong> <span class="${matchScore >= 70 ? 'green-text' : ''}">${matchScore}%</span></p>
+                    ${job.responseTime ? `<p><strong>Response Time:</strong> ${escapeHtml(job.responseTime)}</p>` : ''}
+                </div>
+                <div class="divider"></div>
+                <h6 style="margin-top: 20px;">Description</h6>
+                <p>${escapeHtml(job.description || '')}</p>
+                ${requirements.length > 0 ? `<h6>Requirements</h6><ul class="browser-default">${requirements.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ul>` : ''}
+                ${benefits.length > 0 ? `<h6>Benefits</h6><ul class="browser-default">${benefits.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
+            `;
+            
+            const applyBtn = document.getElementById('modal-apply-btn');
+            if (isApplied) {
+                applyBtn.style.display = 'none';
+            } else {
+                applyBtn.style.display = '';
+                applyBtn.innerHTML = isSkipped ? '<i class="material-icons left">undo</i>Reconsider & Apply' : '<i class="material-icons left">bolt</i>Quick Apply';
+            }
+            
+            M.Modal.getInstance(document.getElementById('job-detail-modal')).open();
+        }
+        
+        // ===== Render Applied List =====
+        function renderAppliedList() {
+            const container = document.getElementById('applied-list');
+            
+            if (appliedJobs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-list">
+                        <i class="material-icons">work_outline</i>
+                        <h5>No applications yet</h5>
+                        <p>Swipe right on jobs you like to apply!</p>
+                        <button class="btn blue" onclick="scrollToSection('find-jobs-section')">Back to Find Jobs</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = appliedJobs.map(jobId => {
+                const data = appliedJobsData[jobId] || {};
+                const job = allJobsMap[jobId] || data;
+                const status = data.status || 'submitted';
+                const statusLabels = {
+                    submitted: 'Submitted',
+                    under_review: 'Under Review',
+                    interview_scheduled: 'Interview Scheduled',
+                    interviewed: 'Interviewed',
+                    offered: 'Offered!',
+                    accepted: 'Accepted',
+                    rejected: 'Not Selected',
+                    withdrawn: 'Withdrawn'
+                };
+                const statusIcons = {
+                    submitted: 'hourglass_empty',
+                    under_review: 'visibility',
+                    interview_scheduled: 'event',
+                    interviewed: 'how_to_reg',
+                    offered: 'celebration',
+                    accepted: 'check_circle',
+                    rejected: 'cancel',
+                    withdrawn: 'undo'
+                };
+                
+                return `
+                    <div class="job-list-item" draggable="true" data-job-id="${escapeHtml(jobId)}">
+                        <img src="${job.logo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent((job.company || 'J').substring(0, 2))}" class="job-logo" alt="">
+                        <div class="job-info">
+                            <h6 class="job-title">${escapeHtml(job.jobTitle || job.title || 'Job')}</h6>
+                            <p class="job-company">${escapeHtml(job.company || '')}</p>
+                            <div class="job-meta">
+                                <span><i class="material-icons">location_on</i>${escapeHtml(job.location || '')}</span>
+                                <span><i class="material-icons">event</i>Applied ${data.appliedDate || 'recently'}</span>
+                            </div>
+                        </div>
+                        <div class="job-actions">
+                            <span class="status-badge ${status}">
+                                <i class="material-icons">${statusIcons[status] || 'help'}</i>
+                                ${statusLabels[status] || status}
+                            </span>
+                            <button class="btn-small blue-text btn-flat" onclick="viewAppliedJob('${jobId}')" title="View details">
+                                <i class="material-icons">visibility</i>
+                            </button>
+                            <button class="btn-small blue-text btn-flat" onclick="removeFromApplied('${jobId}'); return false;" title="Put back in deck">
+                                <i class="material-icons">undo</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function viewAppliedJob(jobId) {
+            const job = allJobsMap[jobId] || appliedJobsData[jobId];
+            if (job) showJobDetails({ ...job, id: jobId, title: job.jobTitle || job.title });
+        }
+        
+        // Remove from applied and put job back in center deck. When logged in, DELETE in DB by jobId then update UI.
+        async function removeFromApplied(jobId) {
+            if (!appliedJobs.includes(jobId)) return;
+            const data = appliedJobsData[jobId] || {};
+            if (currentUser && authToken) {
+                try {
+                    const res = await fetch('/api/applications/me/by-job/' + encodeURIComponent(jobId), { method: 'DELETE', headers: getAuthHeaders() });
+                    const json = await res.json().catch(() => ({}));
+                    if (!res.ok || (json.statusCode && json.statusCode !== 200)) {
+                        M.toast({ html: json.message || 'Could not remove from applications. Try again.', classes: 'red' });
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Delete application failed:', e);
+                    M.toast({ html: 'Could not remove from applications. Try again.', classes: 'red' });
+                    return;
+                }
+            }
+            appliedJobs = appliedJobs.filter(id => id !== jobId);
+            delete appliedJobsData[jobId];
+            let job = allJobsMap[jobId];
+            if (!job) {
+                job = { id: jobId, title: data.jobTitle || 'Job', jobTitle: data.jobTitle, company: data.company, location: data.location || '', logo: data.logo };
+                allJobsMap[jobId] = job;
+            }
+            allJobs = [job, ...allJobs];
+            renderCards();
+            updateProgress();
+            updateTabCounts();
+            renderAppliedList();
+            if (document.getElementById('loading-state')) document.getElementById('loading-state').style.display = 'none';
+            const actions = document.getElementById('swipe-actions');
+            if (actions) actions.style.display = 'flex';
+            M.toast({ html: 'Job put back in deck', classes: 'blue' });
+        }
+        
+        // ===== Render Skipped List =====
+        function renderSkippedList() {
+            const container = document.getElementById('skipped-list');
+            const clearBtn = document.getElementById('clear-skipped-btn');
+            
+            if (skippedJobs.length === 0) {
+                clearBtn.style.display = 'none';
+                container.innerHTML = `
+                    <div class="empty-list">
+                        <i class="material-icons">thumb_up</i>
+                        <h5>No skipped jobs</h5>
+                        <p>You haven't skipped any jobs yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            clearBtn.style.display = '';
+            
+            container.innerHTML = skippedJobs.map(jobId => {
+                const job = allJobsMap[jobId];
+                if (!job) return '';
+                
+                return `
+                    <div class="job-list-item">
+                        <img src="${job.logo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent((job.company || 'J').substring(0, 2))}" class="job-logo" alt="">
+                        <div class="job-info">
+                            <h6 class="job-title">${escapeHtml(job.title || 'Job')}</h6>
+                            <p class="job-company">${escapeHtml(job.company || '')}</p>
+                            <div class="job-meta">
+                                <span><i class="material-icons">location_on</i>${escapeHtml(job.location || '')}</span>
+                                <span><i class="material-icons">payments</i>${escapeHtml(job.salary || 'Not specified')}</span>
+                            </div>
+                        </div>
+                        <div class="job-actions">
+                            <span class="status-badge skipped">
+                                <i class="material-icons">remove_circle</i>
+                                Skipped
+                            </span>
+                            <button class="btn-small green white-text" onclick="reconsiderJob('${jobId}')" title="Reconsider & Apply">
+                                <i class="material-icons">undo</i>
+                            </button>
+                            <button class="btn-small blue-text btn-flat" onclick="viewSkippedJob('${jobId}')" title="View Details">
+                                <i class="material-icons">visibility</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).filter(Boolean).join('');
+            
+            if (!container.innerHTML) {
+                container.innerHTML = `<div class="empty-list"><p>No job details available</p></div>`;
+            }
+        }
+        
+        function viewSkippedJob(jobId) {
+            const job = allJobsMap[jobId];
+            if (job) showJobDetails({ ...job, id: jobId });
+        }
+        
+        function reconsiderJob(jobId) {
+            const job = allJobsMap[jobId];
+            if (!job) return;
+            
+            // Remove from skipped
+            skippedJobs = skippedJobs.filter(id => id !== jobId);
+            if (currentUser && authToken) {
+                fetch('/api/users/me/skipped/' + encodeURIComponent(jobId), { method: 'DELETE', headers: getAuthHeaders() }).catch(() => {});
+            }
+            
+            // Apply to job
+            applyToJob(job);
+            
+            updateTabCounts();
+            renderSkippedList();
+            renderAppliedList();
+            
+            M.toast({ html: `<i class="material-icons left">check</i> Applied to ${job.title}!`, classes: 'green' });
+        }
+        
+        function clearAllSkipped() {
+            if (confirm('Clear all skipped jobs? They will appear again in your swipe deck.')) {
+                skippedJobs = [];
+                if (currentUser && authToken) {
+                    fetch('/api/users/me/skipped/clear', { method: 'PUT', headers: getAuthHeaders() }).then(() => {
+                        updateTabCounts();
+                        renderSkippedList();
+                        currentIndex = 0;
+                        loadJobs();
+                        M.toast({ html: 'Skipped jobs cleared', classes: 'blue' });
+                    }).catch(() => { M.toast({ html: 'Failed to clear', classes: 'red' }); });
+                } else {
+                    updateTabCounts();
+                    renderSkippedList();
+                    currentIndex = 0;
+                    loadJobs();
+                    M.toast({ html: 'Skipped jobs cleared', classes: 'blue' });
+                }
+            }
+        }
+        
+        // ===== Progress & Empty State =====
+        function updateProgress() {
+            const total = allJobs.length;
+            const seen = currentIndex + 1;
+            document.getElementById('swipe-progress').textContent = `${seen} of ${total} jobs`;
+        }
+        
+        function showNoMoreJobs() {
+            document.getElementById('swipe-actions').style.display = 'none';
+            document.getElementById('swipe-progress').style.display = 'none';
+            document.getElementById('cards-stack').innerHTML = `
+                <div class="no-more-jobs">
+                    <i class="material-icons">check_circle</i>
+                    <h4>All caught up!</h4>
+                    <p>You've seen all available jobs.</p>
+                    <button class="btn white blue-text" onclick="resetAndReload()">
+                        <i class="material-icons left">refresh</i>Start Over
+                    </button>
+                    <br><br>
+                    <button class="btn-flat white-text" onclick="scrollToSection('applied-section')">
+                        <i class="material-icons left">check_circle</i>View Applied Jobs
+                    </button>
+                </div>
+            `;
+        }
+        
+        function resetAndReload() {
+            skippedJobs = [];
+            if (currentUser && authToken) {
+                fetch('/api/users/me/skipped/clear', { method: 'PUT', headers: getAuthHeaders() }).finally(() => {
+                    currentIndex = 0;
+                    document.getElementById('swipe-progress').style.display = '';
+                    loadJobs();
+                });
+            } else {
+                currentIndex = 0;
+                document.getElementById('swipe-progress').style.display = '';
+                loadJobs();
+            }
+        }
+    </script>
+</body>
+</html>

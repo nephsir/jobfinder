@@ -1,0 +1,26 @@
+{
+  "name": "jobseeker-platform",
+  "version": "1.0.0",
+  "description": "SIT725 JobSeeker Platform - A real-time job search and application system",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node scripts/seed.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["jobseeker", "sit725", "express", "socket.io", "mvc", "materialize"],
+  "author": "s225504843",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^5.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.3",
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
